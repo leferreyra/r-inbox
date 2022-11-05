@@ -1,0 +1,25 @@
+{
+  "name": "reddit-inbox",
+  "version": "1.0.0",
+  "description": "This project is bootstrapped with [Create Elm App](https://github.com/halfzebra/create-elm-app).",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "build": "elm-app build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leferreyra/r-inbox.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/leferreyra/r-inbox/issues"
+  },
+  "homepage": "https://github.com/leferreyra/r-inbox#readme",
+  "devDependencies": {
+    "create-elm-app": "^5.22.0"
+  }
+}
