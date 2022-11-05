@@ -1,12 +1,14 @@
 module Main exposing (..)
 
 import Browser
+import Browser.Navigation as Nav
 import Css.Global
 import Html.Styled exposing (..)
 import Html.Styled.Attributes as Attr
 import Http
 import Json.Decode exposing (Decoder, at, list, string)
 import Tailwind.Utilities as Tw
+import Url
 
 
 
@@ -24,9 +26,9 @@ type alias Post =
     }
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( Loading, getPosts )
+init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
+init flags url key =
+    Debug.log url.path ( Loading, getPosts )
 
 
 
@@ -35,6 +37,8 @@ init =
 
 type Msg
     = GotPosts (Result Http.Error (List Post))
+    | UrlChanged
+    | LinkClicked
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -48,32 +52,45 @@ update msg model =
                 Err _ ->
                     ( Failure, Cmd.none )
 
+        UrlChanged ->
+            ( model, Cmd.none )
+
+        LinkClicked ->
+            ( model, Cmd.none )
+
 
 
 ---- VIEW ----
 
 
-view : Model -> Html Msg
+view : Model -> Browser.Document Msg
 view model =
-    div []
-        [ Css.Global.global Tw.globalStyles
-        , div
-            [ Attr.css
-                [ Tw.p_6
+    { title = "R Inbox"
+    , body =
+        [ toUnstyled
+            (div
+                []
+                [ Css.Global.global Tw.globalStyles
+                , div
+                    [ Attr.css
+                        [ Tw.p_6
+                        ]
+                    ]
+                    [ case model of
+                        Success posts ->
+                            ul []
+                                (List.map viewPost posts)
+
+                        Failure ->
+                            text "An error happened :("
+
+                        Loading ->
+                            text "..."
+                    ]
                 ]
-            ]
-            [ case model of
-                Success posts ->
-                    ul []
-                        (List.map viewPost posts)
-
-                Failure ->
-                    text "An error happened :("
-
-                Loading ->
-                    text "..."
-            ]
+            )
         ]
+    }
 
 
 viewPost : Post -> Html Msg
@@ -109,9 +126,11 @@ postsDecoder =
 
 main : Program () Model Msg
 main =
-    Browser.element
-        { view = view >> toUnstyled
-        , init = \_ -> init
+    Browser.application
+        { view = view
+        , init = init
         , update = update
         , subscriptions = always Sub.none
+        , onUrlChange = \_ -> UrlChanged
+        , onUrlRequest = \_ -> LinkClicked
         }
