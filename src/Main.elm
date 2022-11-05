@@ -9,13 +9,20 @@ import Http
 import Json.Decode exposing (Decoder, at, list, string)
 import Tailwind.Utilities as Tw
 import Url
+import Url.Parser exposing ((</>), Parser, oneOf)
 
 
 
 ---- MODEL ----
 
 
-type Model
+type alias Model =
+    { route : Maybe Route
+    , state : State
+    }
+
+
+type State
     = Failure
     | Loading
     | Success (List Post)
@@ -26,9 +33,32 @@ type alias Post =
     }
 
 
+type Route
+    = Subreddit String
+
+
+routeParser : Parser (Route -> a) a
+routeParser =
+    oneOf
+        [ Url.Parser.map Subreddit Url.Parser.string
+        ]
+
+
 init : () -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
-init flags url key =
-    Debug.log url.path ( Loading, getPosts )
+init _ url _ =
+    let
+        route =
+            Url.Parser.parse routeParser url
+
+        subreddit =
+            case route of
+                Nothing ->
+                    "all"
+
+                Just (Subreddit r) ->
+                    r
+    in
+    ( { route = route, state = Loading }, getPosts subreddit )
 
 
 
@@ -47,10 +77,10 @@ update msg model =
         GotPosts result ->
             case result of
                 Ok posts ->
-                    ( Success posts, Cmd.none )
+                    ( { model | state = Success posts }, Cmd.none )
 
                 Err _ ->
-                    ( Failure, Cmd.none )
+                    ( { model | state = Failure }, Cmd.none )
 
         UrlChanged ->
             ( model, Cmd.none )
@@ -76,16 +106,21 @@ view model =
                         [ Tw.p_6
                         ]
                     ]
-                    [ case model of
-                        Success posts ->
-                            ul []
-                                (List.map viewPost posts)
+                    [ case model.route of
+                        Nothing ->
+                            text "Nothing to see here..."
 
-                        Failure ->
-                            text "An error happened :("
+                        Just _ ->
+                            case model.state of
+                                Success posts ->
+                                    ul []
+                                        (List.map viewPost posts)
 
-                        Loading ->
-                            text "..."
+                                Failure ->
+                                    text "An error happened :("
+
+                                Loading ->
+                                    text "..."
                     ]
                 ]
             )
@@ -102,10 +137,10 @@ viewPost post =
 -- HTTP
 
 
-getPosts : Cmd Msg
-getPosts =
+getPosts : String -> Cmd Msg
+getPosts subreddit =
     Http.get
-        { url = "https://www.reddit.com/r/argentina.json"
+        { url = "https://www.reddit.com/r/" ++ subreddit ++ ".json"
         , expect = Http.expectJson GotPosts postsDecoder
         }
 
