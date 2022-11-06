@@ -2,8 +2,7 @@ module Main exposing (..)
 
 import Browser
 import Browser.Navigation as Nav
-import Html exposing (..)
-import Html.Attributes as Attr
+import Element exposing (Element, column, el, link, padding, row, spacing, text, width)
 import Http
 import Json.Decode exposing (Decoder, at, list, string)
 import Url
@@ -95,18 +94,19 @@ view : Model -> Browser.Document Msg
 view model =
     { title = "R Inbox"
     , body =
-        [ div
-            []
-            [ div
+        [ Element.layout []
+            (el
                 []
-                [ case model.route of
+                (case model.route of
                     Nothing ->
                         text "Nothing to see here..."
 
                     Just _ ->
                         case model.state of
                             Success posts ->
-                                ul []
+                                column
+                                    [ padding 20
+                                    ]
                                     (List.map viewPost posts)
 
                             Failure ->
@@ -114,17 +114,18 @@ view model =
 
                             Loading ->
                                 text "..."
-                ]
-            ]
+                )
+            )
         ]
     }
 
 
-viewPost : Post -> Html Msg
+viewPost : Post -> Element Msg
 viewPost post =
-    li
-        []
-        [ text post.title ]
+    link
+        [ padding 5
+        ]
+        { url = post.title, label = text post.title }
 
 
 
