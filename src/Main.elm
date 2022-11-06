@@ -2,12 +2,10 @@ module Main exposing (..)
 
 import Browser
 import Browser.Navigation as Nav
-import Css.Global
-import Html.Styled exposing (..)
-import Html.Styled.Attributes as Attr
+import Html exposing (..)
+import Html.Attributes as Attr
 import Http
 import Json.Decode exposing (Decoder, at, list, string)
-import Tailwind.Utilities as Tw
 import Url
 import Url.Parser exposing ((</>), Parser, oneOf)
 
@@ -97,40 +95,36 @@ view : Model -> Browser.Document Msg
 view model =
     { title = "R Inbox"
     , body =
-        [ toUnstyled
-            (div
+        [ div
+            []
+            [ div
                 []
-                [ Css.Global.global Tw.globalStyles
-                , div
-                    [ Attr.css
-                        [ Tw.p_6
-                        ]
-                    ]
-                    [ case model.route of
-                        Nothing ->
-                            text "Nothing to see here..."
+                [ case model.route of
+                    Nothing ->
+                        text "Nothing to see here..."
 
-                        Just _ ->
-                            case model.state of
-                                Success posts ->
-                                    ul []
-                                        (List.map viewPost posts)
+                    Just _ ->
+                        case model.state of
+                            Success posts ->
+                                ul []
+                                    (List.map viewPost posts)
 
-                                Failure ->
-                                    text "An error happened :("
+                            Failure ->
+                                text "An error happened :("
 
-                                Loading ->
-                                    text "..."
-                    ]
+                            Loading ->
+                                text "..."
                 ]
-            )
+            ]
         ]
     }
 
 
 viewPost : Post -> Html Msg
 viewPost post =
-    li [] [ text post.title ]
+    li
+        []
+        [ text post.title ]
 
 
 
